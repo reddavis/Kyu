@@ -18,7 +18,8 @@ let package = Package(
     targets: [
         .target(
             name: "Kyu",
-            path: "Kyu"),
+            path: "Kyu",
+            exclude: ["Supporting Files/Info.plist"]),
         .testTarget(
             name: "KyuTests",
             dependencies: ["Kyu"],
