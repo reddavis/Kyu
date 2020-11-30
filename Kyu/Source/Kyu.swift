@@ -12,6 +12,7 @@ import os.log
 public final class Kyu<T> where T: Job
 {
     // Public
+    public typealias WillExecuteJob = (_ job: inout T) -> Void
     
     /// The root directory that Kyu uses to store jobs.
     public let url: URL
@@ -24,6 +25,11 @@ public final class Kyu<T> where T: Job
     
     /// The number of completed jobs.
     public var numberOfCompletedJobs: Int { self.completedJobs().count }
+    
+    /// A closure called before a job is executed.
+    /// It can be used to change a Job configuration before it is executed
+    /// or pass it variables that are not `Codable` friendly.
+    public var onWillExecuteJob: WillExecuteJob?
     
     // Private
     private let logger: Logger
@@ -102,9 +108,13 @@ public final class Kyu<T> where T: Job
     {
         self.jobProcessingDispatchQueue.async {
             guard !self.isProcessing,
-                  let job = self.nextExecutablePendingJob() else { return }
+                  var job = self.nextExecutablePendingJob() else { return }
             self.isProcessing = true
             
+            // On will execute
+            self.onWillExecuteJob?(&job)
+            
+            // Execute job
             job.execute { result in
                 defer { self.isProcessing = false }
                 

@@ -9,7 +9,7 @@ import Foundation
 @testable import Kyu
 
 
-final class AppendNewLineJob: Job
+struct AppendNewLineJob: Job
 {
     // Internal
     let id: UUID
@@ -20,7 +20,7 @@ final class AppendNewLineJob: Job
     let fileURL: URL
     let numberOfTimesToFail: Int
     
-    let string: String
+    var string: String
     let failureString: String
     
     // MARK: Initialization

@@ -44,7 +44,6 @@ final class KyuTests: XCTestCase
         // Add jobs
         try jobs.forEach {
             XCTAssertNoThrow(try kyu.add(job: $0))
-            print(kyu.numberOfPendingJobs)
         }
         
         self.expectToEventually(kyu.numberOfPendingJobs == 0, timeout: 5.0)
@@ -58,6 +57,29 @@ final class KyuTests: XCTestCase
         
         // Assert jobs gets moved to completed directory
         XCTAssertEqual(kyu.numberOfCompletedJobs, strings.count)
+    }
+    
+    func testOnWillExecuteJobHook() throws
+    {
+        let originalString = UUID().uuidString
+        let updatedString = UUID().uuidString
+        let job = AppendNewLineJob(fileURL: self.fileURL, string: originalString, failureString: originalString)
+        
+        let kyu = try Kyu<AppendNewLineJob>(url: self.kyuDirectory)
+        kyu.onWillExecuteJob = { job in
+            job.string = updatedString
+        }
+        
+        // Add job
+        try kyu.add(job: job)
+        
+        self.expectToEventually(kyu.numberOfPendingJobs == 0, timeout: 5.0)
+        
+        let fileData = try Data(contentsOf: self.fileURL)
+        let fileText = String(data: fileData, encoding: .utf8)
+        
+        XCTAssertNotNil(fileText)
+        XCTAssertEqual(fileText!.trimmingCharacters(in: .whitespacesAndNewlines), updatedString)
     }
     
     func testRetryingJobExecution() throws
